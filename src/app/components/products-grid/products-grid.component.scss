@@ -1,0 +1,12 @@
+.no-border {
+    border: unset;
+}
+
+.no-border:focus-visible {
+    border: unset;
+}
+
+input {
+    border: unset;
+    background-color: unset;
+}

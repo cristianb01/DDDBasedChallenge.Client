@@ -12,7 +12,7 @@ export class CategoryService {
   private readonly apiUrl: string;
 
   constructor(private httpClient: HttpClient) {
-    this.apiUrl = environment.apiUrl;
+    this.apiUrl = `${environment.apiUrl}/category`;
   }
 
   public getAllCategories(): Promise<CategoryResponseModel[]> {
