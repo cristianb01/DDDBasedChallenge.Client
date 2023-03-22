@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { CategoryResponseModel } from 'src/app/models/category.model';
-import { ProductResponseModel } from 'src/app/models/product.model';
+import { ProductRequestModel, ProductResponseModel } from 'src/app/models/product.model';
 import { CategoryService } from 'src/app/services/category.service';
+import { ProductService } from 'src/app/services/product.service';
 
 @Component({
   selector: 'app-products-grid',
@@ -16,16 +17,18 @@ export class ProductsGridComponent implements OnInit{
   public form!: FormGroup;
 
   constructor(private categoryService: CategoryService,
+              private productService: ProductService,
               private formBuilder: FormBuilder) {
     
   }
   
   ngOnInit(): void {
-    this.getAllCategories()
-    .then(categories => {
-      this.categories = categories;
-      this.form = this.initializeForm();
-    });
+    this.categoryService.categories
+      .subscribe(categories => {
+        this.categories = categories;
+        this.form = this.initializeForm();
+      });
+    this.categoryService.getAllCategories();  
   }
 
   private initializeForm(): FormGroup {
@@ -52,26 +55,46 @@ export class ProductsGridComponent implements OnInit{
           productId: product.id,
           productName: product.name,
           quantityInPackage: product.quantityInPackage,
-          categoryId: product.categoryId
+          categoryId: product.categoryId,
+          isNew: product.isNew
         });
       })
     )
   }
 
-  public updateProduct(form: AbstractControl) {
-    if (form.valid) {
-      // TODO: implement updateProduct
-      console.log(form.value);
+  public async onSaveButtonClick(productForm: AbstractControl) {
+    if (productForm.valid) {
+      if (productForm.get('productId')?.value === null) {
+        await this.productService
+          .createProduct(this.mapProductFormToModel(productForm as FormGroup));
+        this.categoryService.getAllCategories();
+      }
+      else {
+        // call update
+      }
+      console.log(productForm.value);
     }
   }
 
-  public deleteProduct(form: AbstractControl) {
-    if (form.valid) {
-      // TODO: implement deleteProduct
+  public async deleteProduct(productForm: AbstractControl) {
+    if (productForm.valid) {
+      await this.productService.deleteProduct(productForm.get('productId')?.value);
+      this.categoryService.getAllCategories();
     }
   }
-  private getAllCategories(): Promise<CategoryResponseModel[]> {
-    return this.categoryService.getAllCategories();
+
+  public onAddProductButtonClick(categoryFormIndex: number) {
+    const categoryId = this.getCategoryFormArray
+      .at(categoryFormIndex).get('categoryId')?.value;
+
+    const newForm = this.formBuilder.group({
+      productId: null,
+      productName: null,
+      quantityInPackage: null,
+      categoryId: categoryId
+    });
+
+    this.getProductFormArray(categoryFormIndex).push(newForm);
   }
 
   public get getCategoryFormArray(): FormArray {
@@ -80,5 +103,14 @@ export class ProductsGridComponent implements OnInit{
 
   public getProductFormArray(index: number): FormArray {
     return this.getCategoryFormArray.at(index).get('products') as FormArray;
+  }
+
+  private mapProductFormToModel(productForm: FormGroup): ProductRequestModel {
+    return {
+      categoryId: productForm.get('categoryId')?.value,
+      name: productForm.get('productName')?.value,
+      quantityInPackage: productForm.get('quantityInPackage')?.value,
+      creationDate: new Date()
+    } as ProductRequestModel
   }
 }

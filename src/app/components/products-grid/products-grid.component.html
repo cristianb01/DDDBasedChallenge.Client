@@ -20,6 +20,7 @@
                                     <th scope="row">{{ productForm.get('productId')?.value }}</th>
                                     <td>
                                         <input formControlName="productName">
+                                        <span class="badge badge-pill bg-info" *ngIf="productForm.get('isNew')?.value">New!</span>
                                     </td>
                                     <td>
                                         <input formControlName="quantityInPackage">
@@ -31,19 +32,22 @@
                                         </button>
                                         <button class="btn  btn-outline-primary"
                                                 [disabled]="productForm.pristine"
-                                                (click)="updateProduct(productForm)">
+                                                (click)="onSaveButtonClick(productForm)">
                                             <i class="fa fa-save"></i>
+                                            
                                         </button>
                                     </td>
                                 </ng-container>
                             </ng-container>
                           </tr>
                         </tbody>
-                      </table>
+                    </table>
+                    <button class="btn btn-outline-primary"
+                            (click)="onAddProductButtonClick(i)">
+                        <span><i class="fa fa-plus"></i> Add product</span>
+                    </button>
                 </ng-container>
             </ng-container>
-
-
         </div>
     </div>
 </div>

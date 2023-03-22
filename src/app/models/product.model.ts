@@ -10,4 +10,5 @@ export interface ProductResponseModel {
     name: string;
     quantityInPackage: number;
     categoryId: number;
+    isNew: boolean;
 }
