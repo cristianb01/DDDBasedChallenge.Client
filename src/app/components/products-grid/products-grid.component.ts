@@ -90,6 +90,8 @@ export class ProductsGridComponent implements OnInit {
           .updateProduct(productId, mappedProduct);
       }
       this.categoryService.getAllCategories();
+
+      this.isAddingNewProduct = false;
     }
   }
 
@@ -105,7 +107,7 @@ export class ProductsGridComponent implements OnInit {
       .at(categoryFormIndex).get('categoryId')?.value;
 
     const newForm = this.createProductForm();
-    newForm.get('categoryId')?.setValue({ categoryId: categoryId });
+    newForm.get('categoryId')?.setValue(categoryId);
 
     this.getProductFormArray(categoryFormIndex).push(newForm);
 
