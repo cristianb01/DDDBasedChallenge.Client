@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { AbstractControl, FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { AfterContentChecked, AfterViewChecked, Component, DoCheck, ElementRef, OnInit, ViewChildren } from '@angular/core';
+import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CategoryResponseModel } from 'src/app/models/category.model';
 import { ProductRequestModel, ProductResponseModel } from 'src/app/models/product.model';
 import { CategoryService } from 'src/app/services/category.service';
@@ -10,16 +10,18 @@ import { ProductService } from 'src/app/services/product.service';
   templateUrl: './products-grid.component.html',
   styleUrls: ['./products-grid.component.scss']
 })
-export class ProductsGridComponent implements OnInit{
+export class ProductsGridComponent implements OnInit {
 
   public categories!: CategoryResponseModel[];
 
   public form!: FormGroup;
+  
+  isAddingNewProduct: boolean;
 
   constructor(private categoryService: CategoryService,
               private productService: ProductService,
               private formBuilder: FormBuilder) {
-    
+    this.isAddingNewProduct = false;  
   }
   
   ngOnInit(): void {
@@ -33,11 +35,11 @@ export class ProductsGridComponent implements OnInit{
 
   private initializeForm(): FormGroup {
     return this.formBuilder.group({
-      forms: this.createFormArray()
+      forms: this.createCategoriesFormArray()
     });
   }
 
-  private createFormArray(): FormArray {
+  private createCategoriesFormArray(): FormArray {
     let categoryForms = this.categories.map(category => {
       return this.formBuilder.group({
         categoryId: category.id,
@@ -51,28 +53,43 @@ export class ProductsGridComponent implements OnInit{
   private createProductsFormArray(products: ProductResponseModel[]): FormArray {
     return this.formBuilder.array(
       products.map(product => {
-        return this.formBuilder.group({
+        let form = this.createProductForm();
+        form.setValue({
           productId: product.id,
           productName: product.name,
           quantityInPackage: product.quantityInPackage,
           categoryId: product.categoryId,
           isNew: product.isNew
         });
+        return form;
       })
     )
   }
 
+  private createProductForm(): FormGroup {
+    return this.formBuilder.group({
+      productId: null,
+      productName: [null, Validators.required],
+      quantityInPackage: [null, [Validators.required, Validators.pattern("^[0-9]*$")]],
+      categoryId: null,
+      isNew: null
+    });
+  }
+
   public async onSaveButtonClick(productForm: AbstractControl) {
     if (productForm.valid) {
-      if (productForm.get('productId')?.value === null) {
+      const mappedProduct = this.mapProductFormToModel(productForm as FormGroup);
+      const productId = productForm.get('productId')?.value;
+
+      if (productId === null) {
         await this.productService
-          .createProduct(this.mapProductFormToModel(productForm as FormGroup));
-        this.categoryService.getAllCategories();
+          .createProduct(mappedProduct);
       }
       else {
-        // call update
+        await this.productService
+          .updateProduct(productId, mappedProduct);
       }
-      console.log(productForm.value);
+      this.categoryService.getAllCategories();
     }
   }
 
@@ -87,14 +104,12 @@ export class ProductsGridComponent implements OnInit{
     const categoryId = this.getCategoryFormArray
       .at(categoryFormIndex).get('categoryId')?.value;
 
-    const newForm = this.formBuilder.group({
-      productId: null,
-      productName: null,
-      quantityInPackage: null,
-      categoryId: categoryId
-    });
+    const newForm = this.createProductForm();
+    newForm.get('categoryId')?.setValue({ categoryId: categoryId });
 
     this.getProductFormArray(categoryFormIndex).push(newForm);
+
+    this.isAddingNewProduct = true;
   }
 
   public get getCategoryFormArray(): FormArray {

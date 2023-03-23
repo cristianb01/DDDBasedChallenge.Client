@@ -27,4 +27,10 @@ export class ProductService {
       this.httpClient.delete<boolean>(`${this.apiUrl}/${productId}`)
     );
   }
+
+  public updateProduct(productId: number, product: ProductRequestModel): Promise<ProductResponseModel> {
+    return lastValueFrom(
+      this.httpClient.put<ProductResponseModel>(`${this.apiUrl}/${productId}`, product)
+    );
+  }
 }

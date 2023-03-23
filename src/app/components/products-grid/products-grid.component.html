@@ -1,11 +1,11 @@
 <div class="row" [formGroup]="form" *ngIf="form">
     <div class="col">
-        <div *ngFor="let categoryForm of getCategoryFormArray.controls; index as i">
+        <div *ngFor="let categoryForm of getCategoryFormArray.controls; index as i" class="mb-4">
             <ng-container formArrayName="forms">
                 <ng-container [formGroupName]="i">
                     <input formControlName="categoryName" class="h3 no-border">
                     <table class="table table-striped">
-                        <thead>
+                        <thead style="background-color: rgb(181 181 181);">
                           <tr>
                             <th scope="col">ID</th>
                             <th scope="col">Name</th>
@@ -19,11 +19,12 @@
                                 <ng-container [formGroupName]="j">
                                     <th scope="row">{{ productForm.get('productId')?.value }}</th>
                                     <td>
-                                        <input formControlName="productName">
+                                        <input formControlName="productName" 
+                                               placeholder="Enter product name">
                                         <span class="badge badge-pill bg-info" *ngIf="productForm.get('isNew')?.value">New!</span>
                                     </td>
                                     <td>
-                                        <input formControlName="quantityInPackage">
+                                        <input formControlName="quantityInPackage" placeholder="Enter quantity in package">
                                     </td>
                                     <td class="d-flex justify-content-center">
                                         <button class="btn btn-outline-danger mx-2"
@@ -31,7 +32,7 @@
                                             <i class="fa fa-trash"></i>
                                         </button>
                                         <button class="btn  btn-outline-primary"
-                                                [disabled]="productForm.pristine"
+                                                [disabled]="productForm.pristine || productForm.invalid"
                                                 (click)="onSaveButtonClick(productForm)">
                                             <i class="fa fa-save"></i>
                                             
@@ -43,7 +44,8 @@
                         </tbody>
                     </table>
                     <button class="btn btn-outline-primary"
-                            (click)="onAddProductButtonClick(i)">
+                            (click)="onAddProductButtonClick(i)"
+                            [disabled]="isAddingNewProduct">
                         <span><i class="fa fa-plus"></i> Add product</span>
                     </button>
                 </ng-container>
